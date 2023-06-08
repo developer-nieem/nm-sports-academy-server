@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
+const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY)
 app.use(cors());
 app.use(express.json());
 
@@ -32,6 +33,7 @@ async function run() {
       .collection("Instructors");
     const nmSportsUserCollection = client.db("nmSportsDB").collection("users");
     const nmSportsSelectedClassesCollection = client.db("nmSportsDB").collection("selectedClasses");
+    const nmSportsPaymentCollection = client.db("nmSportsDB").collection("payments");
 
     // classes apis
     app.get("/classes", async (req, res) => {
@@ -109,6 +111,31 @@ async function run() {
       const result = await nmSportsUserCollection.insertOne(user);
       res.send(result);
     });
+
+    // Payment related apis
+
+    app.post('/create-payment-intent' , async(req, res) => {
+        const { price } = req.body;
+          const amount = price * 100;
+          console.log(price , amount);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types : ['card']
+        });
+  
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      })
+
+
+    app.post('/payment' , async(req , res) => {
+        const completeTransition =  req.body;
+        const result =  await nmSportsPaymentCollection.insertOne(completeTransition);
+        res.send(result)
+      })
+  
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
