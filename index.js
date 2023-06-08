@@ -112,6 +112,8 @@ async function run() {
       res.send(result);
     });
 
+
+
     // Payment related apis
 
     app.post('/create-payment-intent' , async(req, res) => {
@@ -136,6 +138,18 @@ async function run() {
         res.send(result)
       })
   
+    //   enrolled classes apis
+
+    app.get('/enrolled-classes/:email' , async(req,res) => {
+        const email =  req.params.email;
+        if (!email) {
+            res.send([]);
+          }
+        const query = {email : email};
+      const result =  await nmSportsPaymentCollection.find(query).toArray();
+      
+      res.send(result)
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
