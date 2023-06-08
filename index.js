@@ -31,7 +31,9 @@ async function run() {
       .db("nmSportsDB")
       .collection("Instructors");
     const nmSportsUserCollection = client.db("nmSportsDB").collection("users");
+    const nmSportsSelectedClassesCollection = client.db("nmSportsDB").collection("selectedClasses");
 
+    // classes apis
     app.get("/classes", async (req, res) => {
       const result = await nmSportsClassesCollection
         .find()
@@ -51,18 +53,24 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/selected-classes", async (req, res) => {
+      const classes = req.body;
+      const result =  await nmSportsSelectedClassesCollection.insertOne(classes);
+      res.send(result)
+    });
+
     // user apis
     app.get("/users/admin/:email", async (req, res) => {
-        const email =  req.params.email;
-        console.log(email);
-        const query =  {email : email};
-        const user = await nmSportsUserCollection.findOne(query);
-        console.log(user);
-        const result =  {
-            admin : user?.role === 'admin',
-            instructor: user?.role === 'instructor'
-        }
-        res.send(result)
+      const email = req.params.email;
+      console.log(email);
+      const query = { email: email };
+      const user = await nmSportsUserCollection.findOne(query);
+      console.log(user);
+      const result = {
+        admin: user?.role === "admin",
+        instructor: user?.role === "instructor",
+      };
+      res.send(result);
     });
 
     app.post("/users", async (req, res) => {
