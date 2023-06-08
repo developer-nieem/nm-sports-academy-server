@@ -59,13 +59,27 @@ async function run() {
       const result =  await nmSportsSelectedClassesCollection.insertOne(classes);
       res.send(result)
     });
+
     app.get("/selected-classes", async (req, res) => {
+        
       const result =  await nmSportsSelectedClassesCollection.find().toArray();
       res.send(result)
     });
+
+    app.get("/selected-classes/:email", async (req, res) => {
+        const email =  req.params.email;
+        if (!email) {
+            res.send([]);
+          }
+        const query = {email : email};
+      const result =  await nmSportsSelectedClassesCollection.find(query).toArray();
+      
+      res.send(result)
+    });
+
      app.delete('/selected-classes/:id' , async(req, res) => {
         const id =  req.params.id;
-        console.log(id);
+        
         const filter =  {_id: new ObjectId(id)};
         const result =  await nmSportsSelectedClassesCollection.deleteOne(filter);
         res.send(result)
@@ -74,10 +88,10 @@ async function run() {
     // user apis
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
-      console.log(email);
+      
       const query = { email: email };
       const user = await nmSportsUserCollection.findOne(query);
-      console.log(user);
+      
       const result = {
         admin: user?.role === "admin",
         instructor: user?.role === "instructor",
