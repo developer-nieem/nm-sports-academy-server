@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.PASS_DB}@cluster0.xifd9dy.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -53,11 +53,23 @@ async function run() {
       res.send(result);
     });
 
+    // selected class apis
     app.post("/selected-classes", async (req, res) => {
       const classes = req.body;
       const result =  await nmSportsSelectedClassesCollection.insertOne(classes);
       res.send(result)
     });
+    app.get("/selected-classes", async (req, res) => {
+      const result =  await nmSportsSelectedClassesCollection.find().toArray();
+      res.send(result)
+    });
+     app.delete('/selected-classes/:id' , async(req, res) => {
+        const id =  req.params.id;
+        console.log(id);
+        const filter =  {_id: new ObjectId(id)};
+        const result =  await nmSportsSelectedClassesCollection.deleteOne(filter);
+        res.send(result)
+     })
 
     // user apis
     app.get("/users/admin/:email", async (req, res) => {
