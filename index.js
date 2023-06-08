@@ -30,9 +30,7 @@ async function run() {
     const nmSportsInstructorCollection = client
       .db("nmSportsDB")
       .collection("Instructors");
-    const nmSportsUserCollection = client
-      .db("nmSportsDB")
-      .collection("users");
+    const nmSportsUserCollection = client.db("nmSportsDB").collection("users");
 
     app.get("/classes", async (req, res) => {
       const result = await nmSportsClassesCollection
@@ -54,15 +52,28 @@ async function run() {
     });
 
     // user apis
-    app.post("/users", async (req, res) => {
-        const user=  req.body;
-        const query =  {email : user.email}
-        const exertingUser =  await nmSportsUserCollection.findOne(query);
-        if (exertingUser) {
-            return res.send({message : 'User Already added '})
+    app.get("/users/admin/:email", async (req, res) => {
+        const email =  req.params.email;
+        console.log(email);
+        const query =  {email : email};
+        const user = await nmSportsUserCollection.findOne(query);
+        console.log(user);
+        const result =  {
+            admin : user?.role === 'admin',
+            instructor: user?.role === 'instructor'
         }
-        const result =  await nmSportsUserCollection.insertOne(user)
         res.send(result)
+    });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const exertingUser = await nmSportsUserCollection.findOne(query);
+      if (exertingUser) {
+        return res.send({ message: "User Already added " });
+      }
+      const result = await nmSportsUserCollection.insertOne(user);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
