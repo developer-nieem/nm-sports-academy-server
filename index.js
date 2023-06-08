@@ -4,7 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
-const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY)
+const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY);
 app.use(cors());
 app.use(express.json());
 
@@ -32,8 +32,12 @@ async function run() {
       .db("nmSportsDB")
       .collection("Instructors");
     const nmSportsUserCollection = client.db("nmSportsDB").collection("users");
-    const nmSportsSelectedClassesCollection = client.db("nmSportsDB").collection("selectedClasses");
-    const nmSportsPaymentCollection = client.db("nmSportsDB").collection("payments");
+    const nmSportsSelectedClassesCollection = client
+      .db("nmSportsDB")
+      .collection("selectedClasses");
+    const nmSportsPaymentCollection = client
+      .db("nmSportsDB")
+      .collection("payments");
 
     // classes apis
     app.get("/classes", async (req, res) => {
@@ -58,42 +62,54 @@ async function run() {
     // selected class apis
     app.post("/selected-classes", async (req, res) => {
       const classes = req.body;
-      const result =  await nmSportsSelectedClassesCollection.insertOne(classes);
-      res.send(result)
+      const result = await nmSportsSelectedClassesCollection.insertOne(classes);
+      res.send(result);
     });
 
     app.get("/selected-classes", async (req, res) => {
-        
-      const result =  await nmSportsSelectedClassesCollection.find().toArray();
-      res.send(result)
+      const result = await nmSportsSelectedClassesCollection.find().toArray();
+      res.send(result);
     });
 
     app.get("/selected-classes/:email", async (req, res) => {
-        const email =  req.params.email;
-        if (!email) {
-            res.send([]);
-          }
-        const query = {email : email};
-      const result =  await nmSportsSelectedClassesCollection.find(query).toArray();
-      
-      res.send(result)
+      const email = req.params.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const result = await nmSportsSelectedClassesCollection
+        .find(query)
+        .toArray();
+
+      res.send(result);
     });
 
-     app.delete('/selected-classes/:id' , async(req, res) => {
-        const id =  req.params.id;
-        
-        const filter =  {_id: new ObjectId(id)};
-        const result =  await nmSportsSelectedClassesCollection.deleteOne(filter);
-        res.send(result)
-     })
+    app.delete("/selected-classes/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const filter = { _id: new ObjectId(id) };
+      const result = await nmSportsSelectedClassesCollection.deleteOne(filter);
+      res.send(result);
+    });
+
+
+
+    app.delete("/selected-classes-delete/:email", async (req, res) => {
+      const email = req.params.email;
+      
+      console.log(email);
+      const result = await nmSportsSelectedClassesCollection.deleteMany({email : email});
+      res.json({ deletedCount: result.deletedCount });
+    });
+
 
     // user apis
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
-      
+
       const query = { email: email };
       const user = await nmSportsUserCollection.findOne(query);
-      
+
       const result = {
         admin: user?.role === "admin",
         instructor: user?.role === "instructor",
@@ -112,44 +128,52 @@ async function run() {
       res.send(result);
     });
 
-
-
     // Payment related apis
 
-    app.post('/create-payment-intent' , async(req, res) => {
-        const { price } = req.body;
-          const amount = price * 100;
-          console.log(price , amount);
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types : ['card']
-        });
-  
-        res.send({
-          clientSecret: paymentIntent.client_secret,
-        });
-      })
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+      console.log(price, amount);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
 
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
 
-    app.post('/payment' , async(req , res) => {
-        const completeTransition =  req.body;
-        const result =  await nmSportsPaymentCollection.insertOne(completeTransition);
+    app.post("/payment", async (req, res) => {
+      const completeTransition = req.body;
+      const result = await nmSportsPaymentCollection.insertOne(
+        completeTransition
+      );
+      res.send(result);
+    });
+
+    app.get("/payment/:email" , async(req, res) =>{
+
+        const email = req.params.email;
+            console.log(email);
+        const query = { email: email };
+        const result = await nmSportsPaymentCollection.find(query).toArray();
         res.send(result)
-      })
-  
+    })
+
     //   enrolled classes apis
 
-    app.get('/enrolled-classes/:email' , async(req,res) => {
-        const email =  req.params.email;
-        if (!email) {
-            res.send([]);
-          }
-        const query = {email : email};
-      const result =  await nmSportsPaymentCollection.find(query).toArray();
-      
-      res.send(result)
-    })
+    app.get("/enrolled-classes/:email", async (req, res) => {
+      const email = req.params.email;
+      if (!email) {
+        res.send([]);
+      }
+      const query = { email: email };
+      const result = await nmSportsPaymentCollection.find(query).toArray();
+
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
