@@ -39,6 +39,7 @@ async function run() {
       .db("nmSportsDB")
       .collection("payments");
 
+
     // classes apis
     app.get("/classes", async (req, res) => {
       const result = await nmSportsClassesCollection
@@ -54,10 +55,19 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/classes" , async(req, res) => {
+        const items =  req.body;
+        const result =  await nmSportsClassesCollection.insertOne(items);
+        res.send(result)
+    })
+
+
     app.get("/instructors", async (req, res) => {
       const result = await nmSportsInstructorCollection.find().toArray();
       res.send(result);
     });
+
+   
 
     // selected class apis
     app.post("/selected-classes", async (req, res) => {
@@ -128,6 +138,7 @@ async function run() {
       res.send(result);
     });
 
+
     // Payment related apis
 
     app.post("/create-payment-intent", async (req, res) => {
@@ -158,9 +169,11 @@ async function run() {
         const email = req.params.email;
             console.log(email);
         const query = { email: email };
-        const result = await nmSportsPaymentCollection.find(query).toArray();
+        const result = await nmSportsPaymentCollection.find(query).sort({ paymentDate: -1 }).toArray();
         res.send(result)
     })
+
+
 
     //   enrolled classes apis
 
