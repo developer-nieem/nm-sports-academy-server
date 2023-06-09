@@ -64,6 +64,7 @@ async function run() {
     })
 
 
+
     app.patch("/classes/:id", async (req, res) => {
         const id = req.params.id;
         const { status } = req.body; 
@@ -78,6 +79,7 @@ async function run() {
         const result = await nmSportsClassesCollection.updateOne(filter, updateDoc);
         res.send(result);
       });
+
 
     //   give feedback apis
     app.put("/feedback-classes/:id", async (req, res) => {
@@ -170,6 +172,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/users' , async(req,res) => {
+        result = await nmSportsUserCollection.find().toArray();
+        res.send(result)
+    })
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -180,6 +187,23 @@ async function run() {
       const result = await nmSportsUserCollection.insertOne(user);
       res.send(result);
     });
+
+
+
+    app.patch("/admin/users/:id" , async(req, res) => {
+        const id =  req.params.id;
+        const {role} =  req.body;
+
+        const filter =  {_id : new ObjectId(id)};
+        const updateDoc =  {
+            $set: {
+                role : role
+            }
+        }
+        const result =  await nmSportsUserCollection.updateOne(filter , updateDoc);
+        res.send(result)
+    })
+
 
 
     // Payment related apis
