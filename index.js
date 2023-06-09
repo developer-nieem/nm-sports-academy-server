@@ -40,7 +40,7 @@ async function run() {
       .collection("payments");
 
 
-    // classes apis
+    // classes home section apis
     app.get("/classes", async (req, res) => {
       const result = await nmSportsClassesCollection
         .find()
@@ -50,16 +50,52 @@ async function run() {
       res.send(result);
     });
 
+    // classes page apis
     app.get("/classes-page", async (req, res) => {
       const result = await nmSportsClassesCollection.find().toArray();
       res.send(result);
     });
 
+    
     app.post("/classes" , async(req, res) => {
         const items =  req.body;
         const result =  await nmSportsClassesCollection.insertOne(items);
         res.send(result)
     })
+
+
+    app.patch("/classes/:id", async (req, res) => {
+        const id = req.params.id;
+        const { status } = req.body; 
+      
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            status: status 
+          },
+        };
+      
+        const result = await nmSportsClassesCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      });
+
+    //   give feedback apis
+    app.put("/feedback-classes/:id", async (req, res) => {
+        const id = req.params.id;
+        const feedBack = req.body.feedback; 
+        const filter = { _id: new ObjectId(id) };
+        const updateDoc=  {
+            $set : {
+                feedBack : feedBack
+            }
+        }
+      
+        const result = await nmSportsClassesCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      });
+
+
+    // instructor
 
     app.get("/instructor-classes/:email", async (req, res) => {
         const email = req.params.email;
