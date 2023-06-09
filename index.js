@@ -52,7 +52,15 @@ async function run() {
 
     // classes page apis
     app.get("/classes-page", async (req, res) => {
+ 
       const result = await nmSportsClassesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/approved-classes-page", async (req, res) => {
+ 
+        const query =  {status : "approved"}
+      const result = await nmSportsClassesCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -158,7 +166,7 @@ async function run() {
     });
 
 
-    // user apis
+    // user apis ==========================================================users
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
 
@@ -177,6 +185,19 @@ async function run() {
         res.send(result)
     })
 
+    app.get('/popular-instructor' , async(req,res) => {
+        const query =  {role : "instructor"}
+        result = await nmSportsUserCollection.find(query).limit(6).toArray();
+        res.send(result)
+    })
+
+    app.get('/all-instructor' , async(req,res) => {
+        const query =  {role : "instructor"}
+        result = await nmSportsUserCollection.find(query).toArray();
+        res.send(result)
+    })
+
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -187,8 +208,6 @@ async function run() {
       const result = await nmSportsUserCollection.insertOne(user);
       res.send(result);
     });
-
-
 
     app.patch("/admin/users/:id" , async(req, res) => {
         const id =  req.params.id;
@@ -206,7 +225,7 @@ async function run() {
 
 
 
-    // Payment related apis
+    // Payment related apis =======================================================
 
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
@@ -254,6 +273,8 @@ async function run() {
 
       res.send(result);
     });
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
