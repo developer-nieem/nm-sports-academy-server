@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+var jwt = require('jsonwebtoken');
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
@@ -9,6 +10,24 @@ const port = process.env.PORT || 3000;
 const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY);
 app.use(cors());
 app.use(express.json());
+
+const verifyJWT =  (req, res, next) => {
+    const authorization =  req.headers.authorization;
+
+    if (!authorization) {
+        return res.send({error: true , message: "Unauthorized"})
+    }
+
+    const token = authorization.split(' ')[1];
+
+    jwt.sign(token , process.env.WEB_SECRETE_TOKEN, (error, decoded) => {
+        if(error){
+            return res.send({error: true , message:"Forbidden"})
+        }
+        req.decoded =  decoded
+        next();
+    })
+}
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.PASS_DB}@cluster0.xifd9dy.mongodb.net/?retryWrites=true&w=majority`;
@@ -40,6 +59,15 @@ async function run() {
     const nmSportsPaymentCollection = client
       .db("nmSportsDB")
       .collection("payments");
+
+
+    // JWT
+    app.post('/jwt' , async(req, res) => {
+        const user = req.body;
+        const token =  jwt.sign(user , process.env.WEB_SECRETE_TOKEN , {expiresIn: '1h'});
+        console.log(token);
+        res.send({token})
+    })
 
 
     // classes home section apis
@@ -169,8 +197,12 @@ async function run() {
 
 
     // user apis ==========================================================users
-    app.get("/users/admin/:email", async (req, res) => {
+    app.get("/users/admin/:email",  async (req, res) => {
       const email = req.params.email;
+
+    //   if (req.decoded.email !== email) {
+    //     res.send({admin : false , instructor: false})
+    //   }
 
       const query = { email: email };
       const user = await nmSportsUserCollection.findOne(query);
@@ -178,6 +210,7 @@ async function run() {
       const result = {
         admin: user?.role === "admin",
         instructor: user?.role === "instructor",
+        student: user?.role === "student",
       };
       res.send(result);
     });
