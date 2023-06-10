@@ -4,6 +4,8 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
+// https://assignment12-server-developer-nieem.vercel.app/
+
 const stripe = require("stripe")(process.env.PAYMENT_SECRETE_KEY);
 app.use(cors());
 app.use(express.json());
@@ -23,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+     client.connect();
 
     const nmSportsClassesCollection = client
       .db("nmSportsDB")
